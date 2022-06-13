@@ -29,8 +29,6 @@ namespace SheetBreakAnalysis
         public static PIPagingConfiguration pagingconfig = new PIPagingConfiguration(PIPageType.TagCount, 100);
         public static int numintervals = 1;
 
-
-
         // These are all the variables we want to capture in the summaries.  To be used as DataTable column names and spreadsheet column headers.
         public static string[] baseheader = new string[] { "Tag", "Start_Time", "End_Time" };
         public static string[] flags = summarytypes.ToString().Split(',');
@@ -64,7 +62,6 @@ namespace SheetBreakAnalysis
         public static IList<DateTime> GetBreakTimesFromFile(cxml.IXLWorksheet sheet)
         {
             // Create a list of DateTimes based on the Excel timestamps in column A.
-            // cxml refers to the ClosedXML package
 
             cxml.IXLCells tagcells = sheet.Column(1).CellsUsed();
             List<DateTime> breaktimes = tagcells.Select<cxml.IXLCell, DateTime>(x => x.GetDateTime()).ToList();
@@ -80,22 +77,8 @@ namespace SheetBreakAnalysis
             cxml.XLWorkbook xlwbk = new cxml.XLWorkbook();
             cxml.IXLWorksheet firstsheet = xlwbk.Worksheets.Add("Summary");
             cxml.IXLWorksheet secondsheet = xlwbk.Worksheets.Add("Top Varying Parameters");
-            
-            if (includedebugsheet)
-            {
-                // The boolean argument gives option to add an extra sheet just for debugging.
-                xlwbk.Worksheets.Add("Debug");
-            }
 
-            foreach(string flag in colheaders)
-            {
-                if(flag.First() == ' ')
-                {
-                    int flagindex = Array.IndexOf(colheaders, flag);
-                    colheaders[flagindex] = flag.Substring(1);   // Remove heading blanks.
-                }
-            }
-
+            //Insert column headers into the first worksheet ("Summary") of the output file.
             firstsheet.Cell(1, 1).InsertData(colheaders, true);
 
             return xlwbk;
@@ -104,6 +87,9 @@ namespace SheetBreakAnalysis
 
         public static IList<(DateTime,DateTime)> CreateTimeRangesFromBreakTimes(IEnumerable<DateTime> breaktimes,int startsecs, int endsecs)
         {
+            
+            //Takes datetime inputs and creates a corresponding time range by applying offsets (startsecs and endsecs)
+            
             foreach(DateTime breaktime in breaktimes)
             {
                 DateTime.SpecifyKind(breaktime, DateTimeKind.Local);
@@ -115,25 +101,11 @@ namespace SheetBreakAnalysis
 
         }
 
-        public static IList<IDictionary<AFSummaryTypes, AFValues>> GetSummaries(PIServer piserv, IEnumerable<string> tagnames, IEnumerable<(DateTime,DateTime)> timeranges)
-        {
-
-            List<AFTimeRange> aftimeranges = timeranges.Select<(DateTime, DateTime), AFTimeRange>(x => new AFTimeRange(x.Item1.ToString(),x.Item2.ToString())).ToList();
-            aftimeranges.Sort((x,y)=>x.StartTime.CompareTo(y.StartTime));
-            IList<AFTimeIntervalDefinition> intervals = Program.GetIntervals(aftimeranges,numintervals, false);
-
-            PIPointList pointlist = new PIPointList(PIPoint.FindPIPoints(piserv, tagnames));
-            IList<IDictionary<AFSummaryTypes, AFValues>> summaries = pointlist.Summaries(intervals,false,summarytypes,calc,timecalc,pagingconfig).ToList();
-
-            return summaries;
-
-        }
 
         public static IList<IDictionary<AFSummaryTypes, AFValues>> GetSummariesOneAtATime(PIServer piserv, IEnumerable<string> tagnames, IEnumerable<(DateTime, DateTime)> timeranges)
         {
-            // This method is a slightly altered copy of the GetSummaries call defined above.  It performs a separate PIPointList.Summaries call for each time range,
-            // rather than issuing one call for all time ranges at once.  This was done because the one call would calculate summary stats for all time ranges combined,
-            // rather than calculate them for each time range separately.
+            
+            //
 
             List<AFTimeRange> aftimeranges = timeranges.Select<(DateTime, DateTime), AFTimeRange>(x => new AFTimeRange(x.Item1.ToString(), x.Item2.ToString())).ToList();
             aftimeranges.Sort((x, y) => x.StartTime.CompareTo(y.StartTime));
