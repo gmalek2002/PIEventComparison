@@ -245,8 +245,6 @@ namespace SheetBreakAnalysis
             int currentrow = xlsht.LastRowUsed().RowNumber() + 1;
             xlsht.Cell(currentrow, 1).InsertData(summaries);
 
-            // Add column for top 10 Yes/No.  There are two methods for this - one using spreadsheet argument, and the other taking a DataTable argument only.
-            //AddTopTenColumn(xlsht, summaries, topx);
         }
 
         public static void FormatTableAfterPaste(cxml.IXLWorksheet xlsht, int numtags, int numcols)
@@ -366,84 +364,3 @@ namespace SheetBreakAnalysis
         }
 
 
-        // Methods listed beyond this point are no longer used and are considered merely scrap for possible future endeavors.
-
-
-        public static void AddTopTenColumn(cxml.IXLWorksheet xlsht, DataTable dt, int x = 10)
-        {
-            // Method 1 of 2 to add top ten column.  Attempt is made by manually inserting values into new spreadsheet column.
-            // Also, the default value of 10 can be replaced by "x".
-
-            int topxcolnum = 0;                                // column number for new top ten column;
-            int covrank = 0;                                     // Will store zero-based rank for sorting by top 10.
-
-            // If the header row already contains "Top 10?", record that column numer in the toptencolnum variable.
-            // Otherwise, create a new column with that header.
-
-            if (xlsht.FirstRowUsed().LastCellUsed().Value.ToString() == topxheader)
-            {
-                topxcolnum = xlsht.LastColumnUsed().ColumnNumber();
-            }
-            else
-            {
-                topxcolnum = xlsht.ColumnsUsed().Count() + 1;
-                xlsht.Cell(1, topxcolnum).Value = topxheader;
-            }
-
-            foreach (int rownum in Enumerable.Range(2, xlsht.RangeUsed().Rows().Count() - 1))
-            {
-                string dateval = xlsht.Cell(rownum, 2).Value.ToString();
-                string cov = xlsht.Cell(rownum, 9).Value.ToString();
-                string filterstr = "COV > " + cov + " and Start_Time = '" + dateval + "'";
-                covrank = dt.Select(filterstr).Count();
-                if (covrank >= x)
-                {
-                    //if the COV value for this row is greater than "x" in descending rank, then it is not top ten (or top "x").
-                    xlsht.Cell(rownum, topxcolnum).Value = "No";
-                }
-                else
-                {
-                    xlsht.Cell(rownum, topxcolnum).Value = "Yes";
-                }
-            }
-
-        }
-
-        public static void PasteSummariesIntoExcel(cxml.IXLWorksheet xlsht, IList<IDictionary<string, string>> summaries)
-        {
-
-            int currentrow = xlsht.LastRowUsed().RowNumber() + 1;
-            int sumstatcol = 4;
-
-            foreach (IDictionary<string, string> sumstat in summaries)
-            {
-                xlsht.Cell(currentrow, sumstatcol).InsertData(sumstat.Values, true);
-                currentrow = xlsht.LastRowUsed().RowNumber() + 1;
-            }
-
-        }
-
-        public static IList<IDictionary<string, string>> FormatSummariesForExcel(IEnumerable<IDictionary<AFSummaryTypes, AFValues>> summaries)
-        {
-
-            IList<IDictionary<string, string>> convertedsummarylist = new List<IDictionary<string, string>>();
-
-            foreach (IDictionary<AFSummaryTypes, AFValues> tagsummary in summaries)
-            {
-                //IDictionary<string, string> convertedsummary = new Dictionary<string, string>();
-                IDictionary<string, string> convertedsummary = tagsummary.ToDictionary<KeyValuePair<AFSummaryTypes, AFValues>, string, string>(x => x.Key.ToString(), x => x.Value.First().ToString());
-                convertedsummarylist.Add(convertedsummary);
-            }
-
-            return convertedsummarylist;
-
-        }
-
-        public static IList<string> GetBreakTimeStringsFromFile(cxml.IXLWorksheet sheet)
-        {
-            cxml.IXLCells tagcells = sheet.Column(1).CellsUsed();
-            return tagcells.Select<cxml.IXLCell, string>(x => x.GetString()).ToList();
-        }
-
-    }
-}
