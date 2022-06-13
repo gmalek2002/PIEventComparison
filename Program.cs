@@ -82,12 +82,10 @@ namespace SheetBreakAnalysis
             firstsheet.Cell(1, 1).InsertData(colheaders, true);
 
             return xlwbk;
-
         }
 
         public static IList<(DateTime,DateTime)> CreateTimeRangesFromBreakTimes(IEnumerable<DateTime> breaktimes,int startsecs, int endsecs)
         {
-            
             //Takes datetime inputs and creates a corresponding time range by applying offsets (startsecs and endsecs)
             
             foreach(DateTime breaktime in breaktimes)
@@ -98,13 +96,11 @@ namespace SheetBreakAnalysis
             List<(DateTime, DateTime)> breaktimeranges = breaktimes.Select<DateTime, (DateTime,DateTime)>( x => (( x.AddSeconds(-1*startsecs), x.AddSeconds(-1 * endsecs) )) ).ToList();
             
             return breaktimeranges;
-
         }
 
 
         public static IList<IDictionary<AFSummaryTypes, AFValues>> GetSummariesOneAtATime(PIServer piserv, IEnumerable<string> tagnames, IEnumerable<(DateTime, DateTime)> timeranges)
-        {
-            
+        {     
             //
 
             List<AFTimeRange> aftimeranges = timeranges.Select<(DateTime, DateTime), AFTimeRange>(x => new AFTimeRange(x.Item1.ToString(), x.Item2.ToString())).ToList();
@@ -121,7 +117,6 @@ namespace SheetBreakAnalysis
             }
 
             return allsummaries;
-
         }
 
         public static IList<IDictionary<AFSummaryTypes, AFValues>> GetSummaries(PIServer piserv, IEnumerable<string> tagnames, IEnumerable<(string, string)> timeranges)
@@ -135,7 +130,6 @@ namespace SheetBreakAnalysis
             IList<IDictionary<AFSummaryTypes, AFValues>> summaries = pointlist.Summaries(intervals, false, summarytypes, calc, timecalc, pagingconfig).ToList();
 
             return summaries;
-
         }
 
         public static List<AFTimeIntervalDefinition> GetIntervals(IEnumerable<AFTimeRange> aftimeranges, int numintervals, bool useselect = true)
@@ -159,7 +153,6 @@ namespace SheetBreakAnalysis
 
                 return intervals;
             }
-
         }
 
 
