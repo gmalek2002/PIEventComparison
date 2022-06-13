@@ -28,14 +28,6 @@ namespace SheetBreakAnalysis
             InitializeComponent();
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            //string endmessage = Testing.TestSummaries();
-            //this.textBox6.Text = endmessage;
-            DebugCopy.ConfirmedWorking(new string[] { "" });
-
-        }
-
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             if (this.checkBox1.Checked)
